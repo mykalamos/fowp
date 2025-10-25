@@ -16,13 +16,12 @@
     <table id="sheet-table" class="display"></table>
 
     <script>
-      fetch("http://localhost:8000/Fowp.xlsx")
-        //fetch("https://fowp.glyphji.com/Fowp.xlsx")
+      //fetch("http://localhost:8000/Fowp.xlsx")
+      fetch("https://fowp.glyphji.com/Fowp.xlsx")
         .then((res) => res.arrayBuffer())
         .then((ab) => {
-          alert("why");
           const workbook = XLSX.read(ab, { type: "array" });
-          const sheetName = "Final";
+          const sheetName = "Test";
           const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
             header: 1,
             blankrows: false,
