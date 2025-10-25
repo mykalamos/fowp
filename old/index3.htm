@@ -10,17 +10,30 @@
     />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <style>
+      table.dataTable td {
+        white-space: nowrap; /* prevent wrapping if commas exist */
+      }
+    </style>
   </head>
   <body>
     <h2>Spreadsheet with Filters</h2>
     <table id="sheet-table" class="display"></table>
 
     <script>
-      //fetch("http://localhost:8000/Fowp.xlsx")
+      function escapeHTML(str) {
+        if (!str) return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
       fetch("https://fowp.glyphji.com/Fowp.xlsx")
         .then((res) => res.arrayBuffer())
         .then((ab) => {
-          alert("why");
           const workbook = XLSX.read(ab, { type: "array" });
           const sheetName = "Final";
           const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
@@ -28,46 +41,40 @@
             blankrows: false,
           });
 
-          console.log("Raw data from sheet:", data.slice(0, 5)); // 👀 check first few rows
+          console.log("Raw data from sheet:", data.slice(0, 5));
 
           if (!data.length) {
             console.error("No data found in sheet");
             return;
           }
-          document.write(data);
-          // Find the maximum column count across all rows
-          const columnCount = Math.max(...data.map((row) => row.length));
 
-          // Normalize all rows (trim, pad, equalize)
+          const columnCount = Math.max(...data.map((row) => row.length));
+          alert(columnCount);
+          // Normalize all rows
           const normalizedData = data.map((row) => {
-            const r = row.map((c) => (c ? String(c).trim() : "")); // trim cells
+            const r = row.map((c) =>
+              c !== undefined && c !== null ? String(c).trim() : "(empty)"
+            );
             while (r.length < columnCount) r.push("");
             return r.slice(0, columnCount);
           });
 
-          // Detect if the first two rows are duplicates (ignoring spaces and empties)
+          // Remove duplicate header row if exists
           const firstRow = normalizedData[0];
           const secondRow = normalizedData[1] || [];
-
           const rowsEqual =
             secondRow.length === firstRow.length &&
             secondRow.every(
               (cell, i) =>
                 firstRow[i].replace(/\s+/g, "") === cell.replace(/\s+/g, "")
             );
+          if (rowsEqual) normalizedData.splice(1, 1);
 
-          if (rowsEqual) {
-            console.log(
-              "⚠️ Duplicate header row detected — removing second one."
-            );
-            normalizedData.splice(1, 1); // remove the duplicate
-          }
-
-          // Build table HTML
+          // Build table HTML with escaped content
           const thead =
             "<thead><tr>" +
             normalizedData[0]
-              .map((cell) => `<th>${cell || " "}</th>`)
+              .map((cell) => `<th>${escapeHTML(cell)}</th>`)
               .join("") +
             "</tr></thead>";
 
@@ -78,7 +85,7 @@
               .map(
                 (row) =>
                   "<tr>" +
-                  row.map((cell) => `<td>${cell || " "}</td>`).join("") +
+                  row.map((cell) => `<td>${escapeHTML(cell)}</td>`).join("") +
                   "</tr>"
               )
               .join("") +

@@ -1,9 +1,96 @@
-<html>
-<body>
-	<h1 style="text-align:center;font-family:sans-serif">Survey Data 2025 Q1 - OneDrive</h1>
-	<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=https://news.glyphji.com/Fowp.xlsx" frameborder="0" width="100%" height="100%">  </iframe>
-<!-- <iframe src="https://onedrive.live.com/:x:/g/personal/E579556A146D028C/EeMfNLmRS0pKm64kEN18FiUBVY6kUlTtrCPX21c00zCOsA?resid=E579556A146D028C!sb9341fe34b914a4a9bae2410dd7c1625&ithint=file%2Cxlsx&e=AUd9sC&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy9lNTc5NTU2YTE0NmQwMjhjL0VlTWZOTG1SUzBwS202NGtFTjE4RmlVQlZZNmtVbFR0ckNQWDIxYzAwekNPc0E_ZT1BVWQ5c0M" frameborder="0" width="100%" height="100%">  </iframe> -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FOWP demo</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: whitesmoke;
+      }
+      table {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Survey data visualisation</h2>
 
-</body>
-<html>
+    <table id="sheet-table" class="display">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
 
+    <!-- Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+    <script>
+      const EXCEL_URL = "https://fowp.glyphji.com/Fowp.xlsx";
+      const SHEET_NAME = "Final";
+
+      function convertOLEDate(value) {
+        if (typeof value === "number") {
+          const date = new Date(Date.UTC(1899, 11, 30) + value * 86400000);
+          return date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+        }
+        return value;
+      }
+
+      fetch(EXCEL_URL)
+        .then((res) => res.arrayBuffer())
+        .then((data) => {
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet = workbook.Sheets[SHEET_NAME];
+          const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+          // Detect columns with "date" in the header (case-insensitive)
+          const headers = rawData[0];
+          const expectedCols = headers.length;
+          const dateIndexes = headers
+            .map((name, index) => (/date/i.test(name) ? index : -1))
+            .filter((index) => index !== -1);
+
+          // Normalize rows and convert dates only in matching columns
+          const rows = rawData.slice(1).map((row) => {
+            const padded = new Array(expectedCols).fill("");
+            row.forEach((cell, i) => {
+              if (dateIndexes.includes(i) && typeof cell === "number") {
+                padded[i] = convertOLEDate(cell);
+              } else {
+                padded[i] = cell ?? "";
+              }
+            });
+            return padded;
+          });
+
+          // Build table header
+          const thead = $("#sheet-table thead");
+          const headerRow = $("<tr></tr>");
+          headers.forEach((h) => headerRow.append(`<th>${h}</th>`));
+          thead.append(headerRow);
+
+          // Build table body
+          const tbody = $("#sheet-table tbody");
+          rows.forEach((row) => {
+            const tr = $("<tr></tr>");
+            row.forEach((cell) => tr.append(`<td>${cell}</td>`));
+            tbody.append(tr);
+          });
+
+          // Initialize DataTable
+          $("#sheet-table").DataTable();
+        })
+        .catch((err) => {
+          console.error("Error loading Excel file:", err);
+          alert("Failed to load Excel file. Check the URL and sheet name.");
+        });
+    </script>
+  </body>
+</html>
