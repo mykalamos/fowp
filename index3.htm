@@ -16,8 +16,8 @@
     <table id="sheet-table" class="display"></table>
 
     <script>
-      fetch("http://localhost:8000/Fowp.xlsx")
-        //fetch("https://fowp.glyphji.com/Fowp.xlsx")
+      //fetch("http://localhost:8000/Fowp.xlsx")
+      fetch("https://fowp.glyphji.com/Fowp.xlsx")
         .then((res) => res.arrayBuffer())
         .then((ab) => {
           alert("why");
@@ -34,7 +34,7 @@
             console.error("No data found in sheet");
             return;
           }
-
+          document.write(data);
           // Find the maximum column count across all rows
           const columnCount = Math.max(...data.map((row) => row.length));
 
