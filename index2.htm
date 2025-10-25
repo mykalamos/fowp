@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Filterable Spreadsheet</title>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  </head>
+  <body>
+    <h2>Spreadsheet with Filters</h2>
+    <table id="sheet-table" class="display"></table>
+
+    <!--script>
+  fetch('https://fowp.glyphji.com/Fowp.xlsx') // replace with path to your xlsx file
+    .then(res => res.arrayBuffer())
+    .then(ab => {
+      const workbook = XLSX.read(ab, { type: "array" });
+      const sheetName = 'Final' //workbook.SheetNames[0]; // or pick another sheet
+      const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+
+      let table = document.getElementById("sheet-table");
+      let thead = "<thead><tr>" + data[0].map(cell => `<th>${cell}</th>`).join("") + "</tr></thead>";
+      let tbody = "<tbody>" + data.slice(1).map(row =>
+        "<tr>" + row.map(cell => `<td>${cell || ""}</td>`).join("") + "</tr>"
+      ).join("") + "</tbody>";
+
+      table.innerHTML = thead + tbody;
+
+      // Enable filtering with DataTables
+      $(document).ready(function() {
+        $('#sheet-table').DataTable();
+      });
+    });
+</script-->
+
+    <script>
+      fetch("https://fowp.glyphji.com/Fowp.xlsx") // replace with actual path //fetch('https://onedrive.live.com/:x:/g/personal/E579556A146D028C/EeMfNLmRS0pKm64kEN18FiUBTQkjquH2yiuS7pBLwfOLfQ?resid=E579556A146D028C!sb9341fe34b914a4a9bae2410dd7c1625&ithint=file%2Cxlsx&e=czRwQq&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL3gvYy9lNTc5NTU2YTE0NmQwMjhjL0VlTWZOTG1SUzBwS202NGtFTjE4RmlVQlRRa2pxdUgyeWl1UzdwQkx3Zk9MZlE_ZT1jelJ3UXE') // replace with actual path
+        .then((res) => res.arrayBuffer())
+        .then((ab) => {
+          const workbook = XLSX.read(ab, { type: "array" });
+          const sheetName = "Final";
+          const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+            header: 1,
+          });
+
+          const columnCount = data[0]?.length || 0;
+
+          // Normalize each row to have the same number of columns
+          const normalizedData = data.map((row) => {
+            const r = row.slice(); // copy
+            while (r.length < columnCount) r.push("&nbsp;");
+            return r;
+          });
+
+          const table = document.getElementById("sheet-table");
+
+          const thead =
+            "<thead><tr>" +
+            normalizedData[0].map((cell) => `<th>${cell}</th>`).join("") +
+            "</tr></thead>";
+          const tbody =
+            "<tbody>" +
+            normalizedData
+              .slice(1)
+              .map(
+                (row) =>
+                  "<tr>" +
+                  row.map((cell) => `<td>${cell}</td>`).join("") +
+                  "</tr>"
+              )
+              .join("") +
+            "</tbody>";
+
+          table.innerHTML = thead + tbody;
+
+          // Initialize DataTables after rendering
+          $(document).ready(function () {
+            $("#sheet-table").DataTable();
+          });
+        });
+    </script>
+  </body>
+</html>
