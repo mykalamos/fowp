@@ -2,32 +2,130 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>FOWP demo</title>
+    <title>FoWP biodiversity survey data demo</title>
     <link
       rel="stylesheet"
       href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
     />
+    <link
+      type="image/png"
+      href="https://www.waterlowpark.org.uk/wp-content/uploads/2020/02/waterlow-logo-2020b100notext-4.png"
+      rel="icon"
+    />
     <style>
+      :root {
+        --highlight: green;
+        --padding: 2vw;
+      }
+
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        margin: 2vh 2vw;
         background-color: whitesmoke;
+        font-size: 1.2vw; /* scales with screen width */
       }
+
       table {
         width: 100%;
       }
+
+      /* ✅ Responsive header using viewport units */
+      .header {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5vw;
+        padding: var(--padding);
+        background-color: whitesmoke;
+      }
+
+      .header > div {
+        display: flex;
+        align-items: center;
+      }
+
+      .header h1 {
+        margin: 0 !important;
+        font-size: 2.5vw; /* scales with viewport width */
+        line-height: 1.2;
+        text-align: left;
+        color: var(--highlight);
+      }
+
+      .header img {
+        height: 15vh; /* scales with viewport height */
+        width: auto;
+        display: block;
+      }
+
+      /* 📱 Responsive stacking on small screens */
+      @media (max-width: 600px) {
+        .header {
+          flex-direction: column;
+          text-align: center;
+          gap: 2vh;
+        }
+        .header h1 {
+          font-size: 4vw;
+          text-align: center;
+        }
+        .header img {
+          height: 12vh;
+        }
+      }
+
+      h1 {
+        font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+        text-align: center;
+        color: var(--highlight);
+      }
+
+      hr {
+        border: none;
+        height: 0.4vh;
+        background-color: var(--highlight);
+        margin: 2vh 0;
+      }
+
       .footer {
-        font-size: 10px;
+        font-size: 1vw;
+        text-align: center;
+        padding: 1vh 0;
+      }
+
+      .footer a {
+        color: var(--highlight);
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
   <body>
-    <h2>FOWP survey data demo</h2>
+    <div class="header">
+      <div><h1>FoWP biodiversity survey data demo</h1></div>
+      <div>
+        <img
+          src="https://www.waterlowpark.org.uk/wp-content/uploads/2020/02/waterlow-logo-2020b250.png"
+          alt="waterlow-logo-2020b250"
+        />
+      </div>
+    </div>
 
     <table id="sheet-table" class="display">
       <thead></thead>
       <tbody></tbody>
     </table>
+
+    <hr />
+    <div class="footer">
+      Created by Riky Choudhuri -
+      <a href="https://riky.me/about" target="_blank">riky.me/about</a>
+    </div>
 
     <!-- Dependencies -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -41,7 +139,7 @@
       function convertOLEDate(value) {
         if (typeof value === "number") {
           const date = new Date(Date.UTC(1899, 11, 30) + value * 86400000);
-          return date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+          return date.toISOString().split("T")[0];
         }
         return value;
       }
@@ -53,14 +151,12 @@
           const sheet = workbook.Sheets[SHEET_NAME];
           const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-          // Detect columns with "date" in the header (case-insensitive)
           const headers = rawData[0];
           const expectedCols = headers.length;
           const dateIndexes = headers
             .map((name, index) => (/date/i.test(name) ? index : -1))
             .filter((index) => index !== -1);
 
-          // Normalize rows and convert dates only in matching columns
           const rows = rawData.slice(1).map((row) => {
             const padded = new Array(expectedCols).fill("");
             row.forEach((cell, i) => {
@@ -73,13 +169,11 @@
             return padded;
           });
 
-          // Build table header
           const thead = $("#sheet-table thead");
           const headerRow = $("<tr></tr>");
           headers.forEach((h) => headerRow.append(`<th>${h}</th>`));
           thead.append(headerRow);
 
-          // Build table body
           const tbody = $("#sheet-table tbody");
           rows.forEach((row) => {
             const tr = $("<tr></tr>");
@@ -87,7 +181,6 @@
             tbody.append(tr);
           });
 
-          // Initialize DataTable
           $("#sheet-table").DataTable();
         })
         .catch((err) => {
@@ -95,7 +188,5 @@
           alert("Failed to load Excel file. Check the URL and sheet name.");
         });
     </script>
-    <hr />
-    <span class="footer">Created by Riky Choudhuri - Sat 25 Oct 2025</span>
   </body>
 </html>
